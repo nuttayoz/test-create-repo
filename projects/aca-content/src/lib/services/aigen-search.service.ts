@@ -24,8 +24,7 @@
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { InfoData } from '../components/aigen-search/aigen-dashboard/aigen-dashboard.component';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { delay } from 'rxjs/operators';
 
 @Injectable({
@@ -34,8 +33,18 @@ import { delay } from 'rxjs/operators';
 export class AigenSearchService {
   constructor(private http: HttpClient) {}
 
-  getSearchResults(query: string): Observable<InfoData[]> {
-    const res = this.http.get<InfoData[]>(`http://localhost:3000/post`);
+  getSearchResults(query: string): Observable<any> {
+    const res = this.http.post<any>(
+      `http://localhost:3000/search`,
+      {
+        query
+      },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
+      }
+    );
     return res.pipe(delay(2000));
     // return this.http.get(`https://api.example.com/search?query=${term}`);
     // const doc = window.location.href;

@@ -52,7 +52,7 @@ export class SearchOutletComponent {
     this.isLoading = true;
     this.aSearch.getSearchResults(query).subscribe(
       (data) => {
-        this.inputData = data;
+        this.inputData = data.result;
         this.isLoading = false;
       },
       (error) => {
