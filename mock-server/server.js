@@ -43,6 +43,14 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.post('/upload', (req, res) => {
+ console.log(req.body);
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
 app.post('/search', (req, res) => {
     const {query} = req.body;
     if (query.length === 0 || query === undefined) {
