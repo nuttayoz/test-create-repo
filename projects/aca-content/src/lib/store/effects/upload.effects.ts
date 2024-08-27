@@ -35,7 +35,7 @@ import { FileUtils, NotificationService } from '@alfresco/adf-core';
 import { EventEmitter, inject, Injectable, NgZone, RendererFactory2 } from '@angular/core';
 import { Actions, ofType, createEffect } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
 import { ContentManagementService } from '../../services/content-management.service';
 import { Node } from '@alfresco/js-api';
@@ -172,16 +172,27 @@ export class UploadEffects {
 
   private uploadQueue(files: FileModel[]) {
     if (files.length > 0) {
+      // *|*sync upload event
       const ulSuccess = new EventEmitter<any>();
       const ulFail = new EventEmitter<any>();
-      ulSuccess.subscribe((v) => {
-        console.error('success upload', v);
-        this.aigenUploadService.uploadFile(v).subscribe((r) => {
-          console.error(r);
-        });
+      ulSuccess.subscribe((result) => {
+        console.error('success upload', result);
+        this.aigenUploadService
+          .uploadFile(result)
+          .pipe(
+            catchError((error) => {
+              console.error('aigen upload service get an error', error);
+              // remove file in alfresco strorage
+              this.contentService.deleteNodes([result.value]);
+              return throwError(error);
+            })
+          )
+          .subscribe((r) => {
+            console.error(r);
+          });
       });
-      ulFail.subscribe((v) => {
-        console.error('error upload', v);
+      ulFail.subscribe((error) => {
+        console.error('error upload', error);
       });
       this.ngZone.run(() => {
         this.uploadService.addToQueue(...files);
