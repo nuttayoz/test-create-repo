@@ -42,6 +42,7 @@ import { AigenFilterComponent } from '../aigen-search/aigen-filter/aigen-filter.
 export class SearchOutletComponent {
   constructor(private router: Router, private aSearch: AigenSearchService) {}
   inputData: InfoData[] | null = null;
+  error: string | null = null;
   isLoading = false;
 
   goToNormalMode() {
@@ -55,8 +56,10 @@ export class SearchOutletComponent {
         this.inputData = data.result;
         this.isLoading = false;
       },
-      (error) => {
-        console.error(error);
+      (error: Error) => {
+        console.error('which error', error.message);
+        this.error = error.message;
+        this.isLoading = false;
       }
     );
   }

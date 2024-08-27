@@ -10,7 +10,10 @@
                 <div class="loading-indicator">
                 </div>
             </div>
-            <aca-aigen-dashboard [inputData]="inputData" *ngIf="!isLoading"></aca-aigen-dashboard>
+            <div *ngIf="!isLoading && error" class="error-container">
+                <h3 class="error-message"><span class="error-message-icon">⚠️</span> {{ error }}</h3>
+            </div>
+            <aca-aigen-dashboard [inputData]="inputData" *ngIf="!isLoading && !error"></aca-aigen-dashboard>
         </div>
     </div>
 </aca-page-layout>
