@@ -32,9 +32,9 @@ import { Observable } from 'rxjs';
 export class AigenFileService {
   constructor(private httpClient: HttpClient) {}
 
-  deleteFile(file: any): Observable<any> {
+  deleteFile(file: any[]): Observable<any> {
     console.error(file);
-    const res = this.httpClient.delete(`http://localhost:3000/delete/2`);
+    const res = this.httpClient.delete(`http://localhost:3000/delete`, { headers: { 'Content-Type': 'application/json' }, body: { nodes: file } });
 
     return res.pipe();
   }
