@@ -43,6 +43,13 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.delete('/delete/:id', (req, res) => {
+    console.log(req.params);
+    res.json({
+        id: 1
+    })
+})
+
 app.post('/upload', (req, res) => {
  console.log(req.body);
  res.json({
