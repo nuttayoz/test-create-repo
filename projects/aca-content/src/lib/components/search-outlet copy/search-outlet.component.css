@@ -52,7 +52,29 @@ body {
     100% {
         transform: rotate(360deg);
     }
-} 
+}
+
+.error-container {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-message {
+  color: #d8000c;
+  background-color: #ffd2d2;
+  border: 1px solid #d8000c;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+.error-message-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
 
 aca-aigen-filter {
     box-sizing: border-box;
