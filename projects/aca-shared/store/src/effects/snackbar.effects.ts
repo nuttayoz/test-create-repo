@@ -104,9 +104,14 @@ export class SnackbarEffects {
       snackBarRef.afterDismissed().subscribe(() => {
         if (!isUndo) {
           // *|* sync delete event
-          this.aigenFileService.deleteFile(action.userAction.action['payload']).subscribe((v) => {
-            console.error('return', v);
-          });
+          this.aigenFileService.deleteFile(action.userAction.action['payload']).subscribe(
+            (result) => {
+              console.error('return', result);
+            },
+            (error) => {
+              console.error('error', error);
+            }
+          );
         } else {
           isUndo = false;
         }
