@@ -43,8 +43,9 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.delete('/delete/:id', (req, res) => {
-    console.log(req.params);
+app.delete('/delete', (req, res) => {
+    // loop through nodes, delete node 1 by 1
+    console.log(req.body);
     res.json({
         id: 1
     })
