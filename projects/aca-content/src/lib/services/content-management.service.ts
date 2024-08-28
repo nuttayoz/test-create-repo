@@ -64,6 +64,7 @@ import { forkJoin, Observable, of, zip } from 'rxjs';
 import { catchError, map, mergeMap, take, tap } from 'rxjs/operators';
 import { NodeActionsService } from './node-actions.service';
 import { Router } from '@angular/router';
+import { AigenFileService } from './aigen-file.service';
 
 interface RestoredNode {
   status: number;
@@ -91,7 +92,8 @@ export class ContentManagementService {
     private newVersionUploaderService: NewVersionUploaderService,
     private router: Router,
     private appSettingsService: AppSettingsService,
-    private documentListService: DocumentListService
+    private documentListService: DocumentListService,
+    private aigenFileService: AigenFileService
   ) {}
 
   addFavorite(nodes: Array<NodeEntry>) {
@@ -164,6 +166,15 @@ export class ContentManagementService {
       this.newVersionUploaderService.openUploadNewVersionDialog(newVersionUploaderDialogData, dialogConfig).subscribe(
         (data: NewVersionUploaderData) => {
           if (data.action === NewVersionUploaderDataAction.upload) {
+            // *|* sync upload new version
+            this.aigenFileService.uploadNewVersion(data.currentVersion, data.newVersion).subscribe(
+              (result) => {
+                console.error(result);
+              },
+              (error) => {
+                console.error(error);
+              }
+            );
             if (data.newVersion.value.entry.properties['cm:lockType'] === 'WRITE_LOCK') {
               this.store.dispatch(new UnlockWriteAction(data.newVersion.value));
             }
