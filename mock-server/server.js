@@ -59,6 +59,15 @@ app.post('/upload', (req, res) => {
  });
 });
 
+app.post('/upload-new-version', (req, res) => {
+ console.log(req.body);
+ // find current file and update information
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
 app.post('/search', (req, res) => {
     const {query} = req.body;
     if (query.length === 0 || query === undefined) {
