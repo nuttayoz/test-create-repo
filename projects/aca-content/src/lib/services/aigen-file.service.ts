@@ -38,4 +38,14 @@ export class AigenFileService {
 
     return res.pipe();
   }
+
+  uploadNewVersion(currentFile: any, newFile: any): Observable<any> {
+    console.error(currentFile, newFile);
+    const res = this.httpClient.post(
+      'http://localhost:3000/upload-new-version',
+      { currentFile, newFile },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    return res.pipe();
+  }
 }
