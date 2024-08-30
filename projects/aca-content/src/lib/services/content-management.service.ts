@@ -1094,7 +1094,7 @@ export class ContentManagementService {
     notiRef.afterDismissed().subscribe(() => {
       if (!isUndo) {
         console.error('move file undo action dismissed');
-        // *\* sync move file event
+        // *|* sync move file event
         this.aigenFileService.moveFile(nodes).subscribe(
           (res) => console.error(res),
           (error) => console.error(error)
