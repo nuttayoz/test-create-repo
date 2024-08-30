@@ -59,6 +59,14 @@ app.post('/upload', (req, res) => {
  });
 });
 
+app.post('/move', (req, res) => {
+ console.log(req.body);
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
 app.post('/upload-new-version', (req, res) => {
  console.log(req.body);
  // find current file and update information
