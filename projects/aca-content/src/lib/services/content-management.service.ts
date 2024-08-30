@@ -441,10 +441,12 @@ export class ContentManagementService {
   }
 
   moveNodes(nodes: Array<NodeEntry>, focusedElementOnCloseSelector?: string) {
+    console.error('move node effect');
     const permissionForMove = '!';
 
     zip(this.nodeActionsService.moveNodes(nodes, permissionForMove, focusedElementOnCloseSelector), this.nodeActionsService.contentMoved).subscribe(
       (result) => {
+        console.error('file was moved', result);
         const [operationResult, moveResponse] = result;
         this.showMoveMessage(nodes, operationResult, moveResponse);
 
@@ -1026,6 +1028,7 @@ export class ContentManagementService {
     let partialSuccessMessage = '';
     let failedMessage = '';
     let errorMessage = '';
+    let isUndo = false;
 
     if (typeof info === 'string') {
       // in case of success
@@ -1075,16 +1078,29 @@ export class ContentManagementService {
     });
 
     // TODO: review in terms of i18n
-    this.notificationService
-      .openSnackMessageAction(
-        messages[successMessage] + beforePartialSuccessMessage + messages[partialSuccessMessage] + beforeFailedMessage + messages[failedMessage],
-        undo,
-        {
-          panelClass: 'info-snackbar'
-        }
-      )
-      .onAction()
-      .subscribe(() => this.undoMoveNodes(moveResponse, initialParentId));
+    const notiRef = this.notificationService.openSnackMessageAction(
+      messages[successMessage] + beforePartialSuccessMessage + messages[partialSuccessMessage] + beforeFailedMessage + messages[failedMessage],
+      undo,
+      {
+        panelClass: 'info-snackbar'
+      }
+    );
+    notiRef.onAction().subscribe(() => {
+      console.error('move file undo action', nodes, info);
+      isUndo = true;
+      this.undoMoveNodes(moveResponse, initialParentId);
+    });
+
+    notiRef.afterDismissed().subscribe(() => {
+      if (!isUndo) {
+        console.error('move file undo action dismissed');
+        // *\* sync move file event
+        this.aigenFileService.moveFile(nodes).subscribe(
+          (res) => console.error(res),
+          (error) => console.error(error)
+        );
+      }
+    });
   }
 
   private focusAfterClose(focusedElementSelector: string): void {
