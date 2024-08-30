@@ -54,4 +54,10 @@ export class AigenFileService {
     const res = this.httpClient.post('http://localhost:3000/move', { file }, { headers: { 'Content-Type': 'application/json' } });
     return res.pipe();
   }
+
+  copyFile(file: any[]): Observable<any> {
+    console.error(file);
+    const res = this.httpClient.post('http://localhost:3000/copy', { file }, { headers: { 'Content-Type': 'application/json' } });
+    return res.pipe();
+  }
 }
