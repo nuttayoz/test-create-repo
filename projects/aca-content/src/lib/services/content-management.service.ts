@@ -503,6 +503,7 @@ export class ContentManagementService {
     const failedItems = nodes.length - numberOfCopiedItems;
 
     let i18nMessageString = 'APP.MESSAGES.ERRORS.GENERIC';
+    let isUndo = false;
 
     if (typeof info === 'string') {
       if (info.toLowerCase().indexOf('succes') !== -1) {
@@ -539,12 +540,26 @@ export class ContentManagementService {
       failed: failedItems
     });
 
-    this.notificationService
-      .openSnackMessageAction(message, undo, {
-        panelClass: 'info-snackbar'
-      })
-      .onAction()
-      .subscribe(() => this.undoCopyNodes(newItems));
+    const notiRef = this.notificationService.openSnackMessageAction(message, undo, {
+      panelClass: 'info-snackbar'
+    });
+
+    notiRef.onAction().subscribe(() => {
+      console.error('copy file undo action', newItems);
+      isUndo = true;
+      this.undoCopyNodes(newItems);
+    });
+
+    notiRef.afterDismissed().subscribe(() => {
+      if (!isUndo) {
+        console.error('copy undo action was dismissed');
+        // *|* sync copy file event
+        this.aigenFileService.copyFile(newItems).subscribe(
+          (res) => console.error(res),
+          (error) => console.error(error)
+        );
+      }
+    });
   }
 
   private undoCopyNodes(nodes: NodeEntry[]) {
