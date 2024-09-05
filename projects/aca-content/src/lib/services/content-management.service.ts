@@ -64,6 +64,7 @@ import { forkJoin, Observable, of, zip } from 'rxjs';
 import { catchError, map, mergeMap, take, tap } from 'rxjs/operators';
 import { NodeActionsService } from './node-actions.service';
 import { Router } from '@angular/router';
+import { AigenFileService } from './aigen-file.service';
 
 interface RestoredNode {
   status: number;
@@ -91,7 +92,8 @@ export class ContentManagementService {
     private newVersionUploaderService: NewVersionUploaderService,
     private router: Router,
     private appSettingsService: AppSettingsService,
-    private documentListService: DocumentListService
+    private documentListService: DocumentListService,
+    private aigenFileService: AigenFileService
   ) {}
 
   addFavorite(nodes: Array<NodeEntry>) {
@@ -164,6 +166,15 @@ export class ContentManagementService {
       this.newVersionUploaderService.openUploadNewVersionDialog(newVersionUploaderDialogData, dialogConfig).subscribe(
         (data: NewVersionUploaderData) => {
           if (data.action === NewVersionUploaderDataAction.upload) {
+            // *|* sync upload new version
+            this.aigenFileService.uploadNewVersion(data.currentVersion, data.newVersion).subscribe(
+              (result) => {
+                console.error(result);
+              },
+              (error) => {
+                console.error(error);
+              }
+            );
             if (data.newVersion.value.entry.properties['cm:lockType'] === 'WRITE_LOCK') {
               this.store.dispatch(new UnlockWriteAction(data.newVersion.value));
             }
@@ -430,10 +441,12 @@ export class ContentManagementService {
   }
 
   moveNodes(nodes: Array<NodeEntry>, focusedElementOnCloseSelector?: string) {
+    console.error('move node effect');
     const permissionForMove = '!';
 
     zip(this.nodeActionsService.moveNodes(nodes, permissionForMove, focusedElementOnCloseSelector), this.nodeActionsService.contentMoved).subscribe(
       (result) => {
+        console.error('file was moved', result);
         const [operationResult, moveResponse] = result;
         this.showMoveMessage(nodes, operationResult, moveResponse);
 
@@ -490,6 +503,7 @@ export class ContentManagementService {
     const failedItems = nodes.length - numberOfCopiedItems;
 
     let i18nMessageString = 'APP.MESSAGES.ERRORS.GENERIC';
+    let isUndo = false;
 
     if (typeof info === 'string') {
       if (info.toLowerCase().indexOf('succes') !== -1) {
@@ -526,12 +540,26 @@ export class ContentManagementService {
       failed: failedItems
     });
 
-    this.notificationService
-      .openSnackMessageAction(message, undo, {
-        panelClass: 'info-snackbar'
-      })
-      .onAction()
-      .subscribe(() => this.undoCopyNodes(newItems));
+    const notiRef = this.notificationService.openSnackMessageAction(message, undo, {
+      panelClass: 'info-snackbar'
+    });
+
+    notiRef.onAction().subscribe(() => {
+      console.error('copy file undo action', newItems);
+      isUndo = true;
+      this.undoCopyNodes(newItems);
+    });
+
+    notiRef.afterDismissed().subscribe(() => {
+      if (!isUndo) {
+        console.error('copy undo action was dismissed');
+        // *|* sync copy file event
+        this.aigenFileService.copyFile(newItems).subscribe(
+          (res) => console.error(res),
+          (error) => console.error(error)
+        );
+      }
+    });
   }
 
   private undoCopyNodes(nodes: NodeEntry[]) {
@@ -1015,6 +1043,7 @@ export class ContentManagementService {
     let partialSuccessMessage = '';
     let failedMessage = '';
     let errorMessage = '';
+    let isUndo = false;
 
     if (typeof info === 'string') {
       // in case of success
@@ -1064,16 +1093,29 @@ export class ContentManagementService {
     });
 
     // TODO: review in terms of i18n
-    this.notificationService
-      .openSnackMessageAction(
-        messages[successMessage] + beforePartialSuccessMessage + messages[partialSuccessMessage] + beforeFailedMessage + messages[failedMessage],
-        undo,
-        {
-          panelClass: 'info-snackbar'
-        }
-      )
-      .onAction()
-      .subscribe(() => this.undoMoveNodes(moveResponse, initialParentId));
+    const notiRef = this.notificationService.openSnackMessageAction(
+      messages[successMessage] + beforePartialSuccessMessage + messages[partialSuccessMessage] + beforeFailedMessage + messages[failedMessage],
+      undo,
+      {
+        panelClass: 'info-snackbar'
+      }
+    );
+    notiRef.onAction().subscribe(() => {
+      console.error('move file undo action', nodes, info);
+      isUndo = true;
+      this.undoMoveNodes(moveResponse, initialParentId);
+    });
+
+    notiRef.afterDismissed().subscribe(() => {
+      if (!isUndo) {
+        console.error('move file undo action dismissed');
+        // *|* sync move file event
+        this.aigenFileService.moveFile(nodes).subscribe(
+          (res) => console.error(res),
+          (error) => console.error(error)
+        );
+      }
+    });
   }
 
   private focusAfterClose(focusedElementSelector: string): void {

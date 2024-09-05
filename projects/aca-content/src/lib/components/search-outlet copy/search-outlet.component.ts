@@ -54,6 +54,7 @@ export class SearchOutletComponent {
     this.aSearch.getSearchResults(query).subscribe(
       (data) => {
         this.inputData = data.result;
+        this.error = null;
         this.isLoading = false;
       },
       (error: Error) => {

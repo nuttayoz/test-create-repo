@@ -30,6 +30,7 @@ import { Store } from '@ngrx/store';
 import { map } from 'rxjs/operators';
 import { AppStore } from '../states/app.state';
 import { SnackbarInfoAction, SnackbarActionTypes, SnackbarWarningAction, SnackbarErrorAction, SnackbarAction } from '../actions/snackbar.actions';
+import { AigenFileService } from '../../../../aca-content/src/lib/services/aigen-file.service';
 
 @Injectable()
 export class SnackbarEffects {
@@ -37,7 +38,8 @@ export class SnackbarEffects {
     private store: Store<AppStore>,
     private actions$: Actions,
     private snackBar: MatSnackBar,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private aigenFileService: AigenFileService
   ) {}
 
   infoEffect = createEffect(
@@ -75,6 +77,8 @@ export class SnackbarEffects {
 
   private showSnackBar(action: SnackbarAction, panelClass: string) {
     const message = this.translate(action.payload, action.params);
+    let isUndo = false;
+    console.error('snackbar show', message, action.userAction, 'APP.ACTIONS.UNDO');
 
     let actionName: string = null;
     if (action.userAction) {
@@ -92,8 +96,29 @@ export class SnackbarEffects {
         callActionOnIconClick: false
       }
     });
+    if (action.userAction && action.userAction.title === 'APP.ACTIONS.UNDO') {
+      snackBarRef.onAction().subscribe(() => {
+        isUndo = true;
+        this.store.dispatch(action.userAction.action);
+      });
+      snackBarRef.afterDismissed().subscribe(() => {
+        if (!isUndo) {
+          // *|* sync delete event
+          this.aigenFileService.deleteFile(action.userAction.action['payload']).subscribe(
+            (result) => {
+              console.error('return', result);
+            },
+            (error) => {
+              console.error('error', error);
+            }
+          );
+        } else {
+          isUndo = false;
+        }
+      });
+    }
 
-    if (action.userAction) {
+    if (action.userAction && action.userAction.title !== 'APP.ACTIONS.UNDO') {
       snackBarRef.onAction().subscribe(() => {
         this.store.dispatch(action.userAction.action);
       });

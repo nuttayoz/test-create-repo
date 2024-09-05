@@ -43,8 +43,41 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.delete('/delete', (req, res) => {
+    // loop through nodes, delete node 1 by 1
+    console.log(req.body);
+    res.json({
+        id: 1
+    })
+})
+
 app.post('/upload', (req, res) => {
  console.log(req.body);
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
+app.post('/move', (req, res) => {
+ console.log(req.body);
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
+app.post('/copy', (req, res) => {
+ console.log(req.body);
+ res.json({
+    status: 'success',
+    message: []
+ });
+});
+
+app.post('/upload-new-version', (req, res) => {
+ console.log(req.body);
+ // find current file and update information
  res.json({
     status: 'success',
     message: []
